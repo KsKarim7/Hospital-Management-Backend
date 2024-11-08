@@ -12,5 +12,6 @@ class DesignationAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Designation,DesignationAdmin)
 admin.site.register(models.Specialization,SpecializationAdmin)
+admin.site.register(models.Review)
 
 
