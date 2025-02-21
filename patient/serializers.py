@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from . import models
 
-class ContactUsSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.ContactUs
+        model = models.Patient
         fields = '__all__' 
