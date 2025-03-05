@@ -9,6 +9,10 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.models import User
 from django.shortcuts import redirect
+from django.contrib.auth import authenticate,login, logout
+from rest_framework.authtoken.models import Token
+
+
 
 
 # for sending mail
@@ -32,6 +36,7 @@ class UserRegistrationApiView(APIView):
             print(user)
             token = default_token_generator.make_token(user)
             print("token ",token)
+            login(request,user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             print("uid ",uid)
             confirm_link = f"http://127.0.0.1:8000/patient/active/{uid}/{token}"
@@ -54,6 +59,32 @@ def activate(request, uid64, token):
     if(user is not None and default_token_generator.check_token(user, token)):
         user.is_active = True
         user.save()
-        return redirect('register')
+        return redirect('login')
     else:
         return redirect('register')
+    
+class UserLoginApiView(APIView):
+    def post(self,request):
+        serializer = serializers.UserLoginSerializer(data = self.request.data)
+
+        if(serializer.is_valid()):
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+
+            user = authenticate(username = username, password = password)
+
+            if(user):
+                token, _ = Token.objects.get_or_create(user=user)
+                return Response({'token': token.key, 'user_id': user.id})
+            else:
+                return Response({'error': "Invalid credentials"})
+        return Response(serializer.errors)
+    
+class UserLogoutView(APIView):
+    def get(self,request):
+        request.user.auth_token.delete()
+        logout(request)
+        return redirect('login')
+
+
+
